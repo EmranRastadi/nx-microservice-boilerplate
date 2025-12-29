@@ -4,10 +4,25 @@
   "files": [],
   "references": [
     {
-      "path": "./apps/microservice-e2e"
+      "path": "./apps/user-service"
     },
     {
-      "path": "./apps/microservice"
+      "path": "./apps/payment-service"
+    },
+    {
+      "path": "./apps/api-gateway"
+    },
+    {
+      "path": "./apps/order-service"
+    },
+    {
+      "path": "./apps/product-service"
+    },
+    {
+      "path": "./libs/contracts"
+    },
+    {
+      "path": "./libs/kafka"
     }
   ]
 }

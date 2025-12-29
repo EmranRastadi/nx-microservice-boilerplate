@@ -1,0 +1,125 @@
+version: '3.8'
+
+services:
+  kafka:
+    image: pc:8083/apache/kafka:4.1.1
+    container_name: kafka
+    ports:
+      - '9092:9092' # internal listener
+      - '9093:9093' # controller
+      - '9094:9094' # external listener
+    environment:
+      # --- KRaft mode ---
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+
+      # --- Listeners ---
+      KAFKA_LISTENERS: INTERNAL://0.0.0.0:9092,EXTERNAL://0.0.0.0:9094,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:9092,EXTERNAL://localhost:9094
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+
+      # --- Single-node defaults ---
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - ms-network
+
+  kafka-ui:
+    image: pc:8083/provectuslabs/kafka-ui:v0.7.2
+    container_name: kafka-ui
+    ports:
+      - '8080:8080'
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: digi
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      DYNAMIC_CONFIG_ENABLED: 'true'
+    networks:
+      - ms-network
+
+  prometheus:
+    image: pc:8083/prom/prometheus
+    container_name: prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    depends_on:
+      - kafka
+    networks:
+      - ms-network
+
+  grafana:
+    image: pc:8083/grafana/grafana
+    container_name: grafana
+    ports:
+      - '3005:3000'
+    depends_on:
+      - kafka
+    networks:
+      - ms-network
+
+  product-db:
+    image: pc:8083/postgres:15.15
+    container_name: product-db
+    environment:
+      POSTGRES_DB: product_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - product_db_data:/var/lib/postgresql/data
+    ports:
+      - '5433:5432'
+    networks:
+      - ms-network
+
+  order-db:
+    image: pc:8083/postgres:15.15
+    container_name: order-db
+    environment:
+      POSTGRES_DB: order_db
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+    ports:
+      - '5434:5432'
+    networks:
+      - ms-network
+
+  pgadmin:
+    image: dpage/pgadmin4:9.11.0
+    container_name: pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - '5050:80'
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - order-db
+      - product-db
+    networks:
+      - ms-network
+
+volumes:
+  kafka_data:
+  product_db_data:
+  order_db_data:
+  pgadmin_data:
+
+networks:
+  ms-network:
+    driver: bridge
