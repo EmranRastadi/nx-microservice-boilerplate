@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "dev": "concurrently     -n API,ORDER,PRODUCT,PAYMENT,USER     -c cyan,green,blue,magenta,yellow     \"nx serve api-gateway\"     \"nx serve order-service\"     \"nx serve product-service\"     \"nx serve payment-service\"     \"nx serve user-service\""
+    "dev": "concurrently     -n API,ORDER,PRODUCT,PAYMENT,USER     -c cyan,green,blue,magenta,yellow     \"nx serve api-gateway\"     \"nx serve order-service\"     \"nx serve product-service\"     \"nx serve payment-service\"     \"nx serve user-service\" --configuration=development"
   },
   "private": true,
   "dependencies": {

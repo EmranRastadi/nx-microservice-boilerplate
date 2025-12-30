@@ -7,6 +7,7 @@ export class AppController {
 
   @Get()
   getData() {
+    console.log(process.env.ORDER_DOMAIN_NAME);
     return this.appService.getData();
   }
 }

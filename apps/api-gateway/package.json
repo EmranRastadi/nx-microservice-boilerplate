@@ -68,10 +68,16 @@
           "watch": true
         },
         "configurations": {
+          "local": {
+            "buildTarget": "@microservice/api-gateway:build:host"
+          },
           "development": {
-            "buildTarget": "@microservice/api-gateway:build:development"
+            "buildTarget": "@microservice/api-gateway:build:dev"
           },
           "production": {
+            "env": {
+              "APP_ENV": "prod"
+            },
             "buildTarget": "@microservice/api-gateway:build:production"
           }
         }
